@@ -244,12 +244,36 @@ async function loadDeals() {
 
     const response = await fetch(API_URL);
 
-    if (!response.ok) {
-      throw new Error("Radar API error");
-    }
+if (!response.ok) {
+  throw new Error("Radar API error");
+}
 
-    const deals = await response.json();
+let deals = await response.json();
 
+deals.sort((a, b) => {
+
+  const aPrice = Number(a.deal_price);
+  const bPrice = Number(b.deal_price);
+
+  const aPenny = aPrice <= 1;
+  const bPenny = bPrice <= 1;
+
+  // Penny deals always come first
+  if (aPenny && !bPenny) return -1;
+  if (!aPenny && bPenny) return 1;
+
+  // Then sort by discount
+  const aDiscount = Number(a.discount_percent || 0);
+  const bDiscount = Number(b.discount_percent || 0);
+
+  if (bDiscount !== aDiscount) {
+    return bDiscount - aDiscount;
+  }
+
+  // Finally, newest first
+  return new Date(b.created_at) - new Date(a.created_at);
+
+});
     document.getElementById("total").textContent =
       deals.length;
 
