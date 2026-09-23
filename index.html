@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RADAR Deals</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: #050505;
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 20px 14px 50px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .logo {
+      font-size: 32px;
+      font-weight: 900;
+    }
+
+    .logo span {
+      color: #ff3030;
+    }
+
+    .subtitle {
+      color: #777;
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .live {
+      font-size: 11px;
+      font-weight: 800;
+      color: #5cff85;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 25px;
+    }
+
+    .stat {
+      background: #111;
+      border: 1px solid #242424;
+      border-radius: 15px;
+      padding: 14px 10px;
+    }
+
+    .number {
+      font-size: 24px;
+      font-weight: 900;
+    }
+
+    .label {
+      color: #777;
+      font-size: 9px;
+      text-transform: uppercase;
+      margin-top: 3px;
+    }
+
+    .section {
+      font-size: 15px;
+      font-weight: 900;
+      margin-bottom: 10px;
+    }
+
+    .deal {
+      display: flex;
+      gap: 12px;
+      background: #101010;
+      border: 1px solid #242424;
+      border-radius: 18px;
+      padding: 11px;
+      margin-bottom: 10px;
+    }
+
+    .image {
+      width: 105px;
+      min-width: 105px;
+      height: 105px;
+      background: #181818;
+      border-radius: 13px;
+      object-fit: contain;
+    }
+
+    .info {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 7px;
+      border-radius: 7px;
+      background: #351010;
+      color: #ff5b5b;
+      font-size: 9px;
+      font-weight: 900;
+    }
+
+    .retailer {
+      color: #999;
+      font-size: 10px;
+      font-weight: 700;
+      margin-top: 7px;
+    }
+
+    .name {
+      font-size: 14px;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-top: 3px;
+    }
+
+    .prices {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .price {
+      color: #5cff85;
+      font-size: 21px;
+      font-weight: 900;
+    }
+
+    .old {
+      color: #666;
+      text-decoration: line-through;
+      font-size: 11px;
+    }
+
+    .discount {
+      color: #ff5b5b;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .store {
+      color: #888;
+      font-size: 10px;
+      margin-top: 7px;
+    }
+
+    .button {
+      display: inline-block;
+      background: white;
+      color: black;
+      text-decoration: none;
+      font-size: 9px;
+      font-weight: 900;
+      padding: 7px 10px;
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+
+    .empty {
+      text-align: center;
+      color: #666;
+      padding: 50px 10px;
+    }
+
+    @media (min-width: 700px) {
+      .container {
+        padding-top: 35px;
+      }
+
+      .image {
+        width: 135px;
+        min-width: 135px;
+        height: 135px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <header>
+    <div>
+      <div class="logo">🚨 <span>RADAR</span></div>
+      <div class="subtitle">Walmart + Home Depot deal scanner</div>
+    </div>
+
+    <div class="live">● LIVE</div>
+  </header>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="number" id="total">—</div>
+      <div class="label">Deals Found</div>
+    </div>
+
+    <div class="stat">
+      <div class="number" id="penny">—</div>
+      <div class="label">≤ $1</div>
+    </div>
+
+    <div class="stat">
+      <div class="number" id="discount">—</div>
+      <div class="label">90%+ Off</div>
+    </div>
+  </div>
+
+  <div class="section">Latest Radar Hits</div>
+
+  <div id="deals">
+    <div class="empty">📡 Loading radar...</div>
+  </div>
+
+</div>
+
+<script>
+
+const API_URL =
+  "https://nmytuljkkssuurqxnjxi.supabase.co/functions/v1/radar-api";
+
+async function loadDeals() {
+
+  try {
+
+    const response = await fetch(API_URL);
+
+    if (!response.ok) {
+      throw new Error("Radar API error");
+    }
+
+    const deals = await response.json();
+
+    document.getElementById("total").textContent =
+      deals.length;
+
+    document.getElementById("penny").textContent =
+      deals.filter(d => Number(d.deal_price) <= 1).length;
+
+    document.getElementById("discount").textContent =
+      deals.filter(d => Number(d.discount_percent) >= 90).length;
+
+    const container = document.getElementById("deals");
+
+    if (!deals.length) {
+      container.innerHTML =
+        '<div class="empty">📡 No qualifying deals yet.</div>';
+      return;
+    }
+
+    container.innerHTML = deals.map(deal => {
+
+      const price =
+        deal.deal_price !== null
+          ? "$" + Number(deal.deal_price).toFixed(2)
+          : "N/A";
+
+      const original =
+        deal.normal_price !== null
+          ? "$" + Number(deal.normal_price).toFixed(2)
+          : "";
+
+      const discount =
+        deal.discount_percent !== null
+          ? Math.round(Number(deal.discount_percent)) + "% OFF"
+          : "";
+
+      const badge =
+        Number(deal.deal_price) <= 1
+          ? "🔥 PENNY DEAL"
+          : "💥 90%+ OFF";
+
+      return `
+        <div class="deal">
+
+          ${
+            deal.image_url
+              ? `<img class="image"
+                   src="${deal.image_url}"
+                   alt="">`
+              : `<div class="image"></div>`
+          }
+
+          <div class="info">
+
+            <span class="badge">${badge}</span>
+
+            <div class="retailer">
+              ${deal.retailer || ""}
+            </div>
+
+            <div class="name">
+              ${deal.name || "Unknown product"}
+            </div>
+
+            <div class="prices">
+
+              <span class="price">
+                ${price}
+              </span>
+
+              ${
+                original
+                  ? `<span class="old">${original}</span>`
+                  : ""
+              }
+
+              ${
+                discount
+                  ? `<span class="discount">${discount}</span>`
+                  : ""
+              }
+
+            </div>
+
+            <div class="store">
+              📍 ${deal.store_name || "Store unavailable"}
+            </div>
+
+            ${
+              deal.product_url
+                ? `<a
+                     class="button"
+                     href="${deal.product_url}"
+                     target="_blank">
+                     VIEW DEAL →
+                   </a>`
+                : ""
+            }
+
+          </div>
+
+        </div>
+      `;
+
+    }).join("");
+
+  } catch (error) {
+
+    document.getElementById("deals").innerHTML =
+      '<div class="empty">⚠️ Radar connection error.</div>';
+
+    console.error(error);
+
+  }
+
+}
+
+loadDeals();
+
+setInterval(loadDeals, 60000);
+
+</script>
+
+</body>
+</html>
